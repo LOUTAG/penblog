@@ -2,6 +2,8 @@
 
 _Voici un réseau social inspiré de facebook et twitter réalisé avec la stack MERN_
 
+url : https://arcane-peak-61091.herokuapp.com/
+
 Les notions abordées dans ce projet :
 
 <ins>Back-end</ins>
