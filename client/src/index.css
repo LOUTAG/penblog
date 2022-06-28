@@ -1,0 +1,42 @@
+@font-face{
+  font-family: "Recoleta";
+  font-weight:300;
+  src: url('./assets/fonts/Recoleta-Light.ttf') format('truetype');
+}
+@font-face{
+  font-family: "Recoleta";
+  font-weight: 400;
+  src: url('./assets/fonts/Recoleta-Regular.ttf') format('truetype');
+}
+@font-face{
+  font-family: "Recoleta";
+  font-weight: 600;
+  src: url('./assets/fonts/Recoleta-SemiBold.ttf') format('truetype');
+}
+@font-face{
+  font-family: "Recoleta";
+  font-weight: 700;
+  src: url('./assets/fonts/Recoleta-Bold.ttf') format('truetype');
+}
+@font-face{
+  font-family: "Recoleta";
+  font-weight: 900;
+  src: url('./assets/fonts/Recoleta-Black.ttf') format('truetype');
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .scrollbar::-webkit-scrollbar{
+    width: 0.5rem;
+  }
+  .scrollbar::-webkit-scrollbar-track{
+    background-color: #deccb2;
+    border-radius: 9999px;
+  }
+  .scrollbar::-webkit-scrollbar-thumb{
+    background-color: #90816b;
+    border-radius: 9999px;
+  }
+}
