@@ -12,7 +12,6 @@ const keys = require("../config/keys");
 const crypto = require("crypto");
 const { cloudinaryUploadImg } = require("../utils/cloudinary");
 const fs = require("fs");
-const { findOne } = require("../models/Users");
 
 //sendgrid configuration
 sgMail.setApiKey(keys.sendgridApiKey);
@@ -443,10 +442,10 @@ exports.resetPassword = expressAsyncHandler(async (req, res) => {
 exports.uploadProfilePicture = expressAsyncHandler(async (req, res) => {
   //1- Get the path of the img
   const localPath = `public/images/profiles/${req.file.filename}`;
-
+  console.log('line 445 - localPath: '+localPath);
   //2- upload to cloudinary
   const imgUploaded = await cloudinaryUploadImg(localPath);
-  console.log("imgUploaded : ", imgUploaded);
+  console.log('line 448 - imgUploaded: '+imgUploaded);
 
   //3- Find the user
   const id = req.user.id;
@@ -458,10 +457,10 @@ exports.uploadProfilePicture = expressAsyncHandler(async (req, res) => {
     );
 
     //4- Delete the picture
-    fs.unlink(localPath, (err) => {
-      if (err) throw err;
-      console.log(`picture from ${localPath} has been deleted`);
-    });
+    // fs.unlink(localPath, (err) => {
+    //   if (err) throw err;
+    //   console.log(`picture from ${localPath} has been deleted`);
+    // });
 
     res.json(user);
   } catch (error) {

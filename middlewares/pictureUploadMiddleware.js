@@ -5,7 +5,7 @@ const expressAsyncHandler = require('express-async-handler');
 
 //We have to configure : file destination, file type and file size
 
-//1- File destination
+//1- File destination (storage)
 const multerStorage = multer.memoryStorage();
 //we don't want to save images on our server but on Cloudinary.
 //So we have to store it temporarily in the memory of our server with memoryStorage().
@@ -50,6 +50,7 @@ exports.profilePictureResize = expressAsyncHandler(async(req, res, next)=>{
         .toFormat("jpeg")
         .jpeg({quality: 100})
         .toFile(path.join(`public/images/profiles/${req.file.filename}`));
+        // .toBuffer();
     next();
 });
 
