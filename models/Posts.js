@@ -46,7 +46,6 @@ const postSchema = new Schema(
         },
         image:{
             type: String,
-            default: '/public/images/posts/penblog_posts.jpg'
         },
         imageId:{
             type: String,

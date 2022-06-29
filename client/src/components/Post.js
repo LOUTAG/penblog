@@ -198,7 +198,7 @@ const Post = ({ post, posts, setPosts, user, userAuthAction }) => {
             <div className="font-bold text-xl">{post.title}</div>
             <div>{post.description}</div>
           </div>
-          {post.image && (
+          {post?.image && (
             <div className="my-2">
               <img
                 className="max-w-full h-auto mx-auto"

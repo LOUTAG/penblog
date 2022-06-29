@@ -150,7 +150,7 @@ const EditPost = ({ user, post, posts, setPosts, setEdit, userAuthAction }) => {
           <img className="max-w-full h-auto mx-auto max-h-[650px]" src={preview} alt="preview" />
         </div>
       ) : (
-        post.image && (
+        post?.image && (
           <div className="my-2">
             <img className="max-w-full h-auto mx-auto" src={post.image} alt={post.title} />
           </div>
