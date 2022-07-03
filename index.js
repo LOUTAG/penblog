@@ -20,6 +20,7 @@ const app = express();
 
 /*** middlewares ***/
 app.use(express.json());
+//express.json() is an inbuilt method that recognize the icoming request object as a JSON object.
 
 const userRoutes = require('./routes/userRoutes');
 const postRoutes = require('./routes/postRoutes');

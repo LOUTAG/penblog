@@ -42,15 +42,15 @@ exports.profilePictureResize = expressAsyncHandler(async(req, res, next)=>{
     req.file.filename = `user-${Date.now()}-${req.file.originalname}`;
 
     //3- resize image and save it inside public folder created at the root
-    await sharp(req.file.buffer)
+    //we have to reaffect value of req.file.buffer to the one resized
+    req.file.buffer = await sharp(req.file.buffer)
         .resize(80, 80, {
             fit: 'cover',
             background: { r: 255, g: 255, b: 255, alpha: 0 }
         })
         .toFormat("jpeg")
         .jpeg({quality: 100})
-        .toFile(path.join(`public/images/profiles/${req.file.filename}`));
-        // .toBuffer();
+        .toBuffer();
     next();
 });
 
@@ -62,13 +62,13 @@ exports.postPictureResize = async(req, res, next)=>{
     //2- Give unique name : we don't want to upload the same image, it can cause conflicts !
     req.file.filename = `post-${Date.now()}-${req.file.originalname}`;
     //3- resize image and save it inside public folder created at the root
-    await sharp(req.file.buffer)
+    req.file.buffer = await sharp(req.file.buffer)
         .resize(680, 650, {
             fit: 'inside',
             background: { r: 255, g: 255, b: 255, alpha: 1 }
         })
         .toFormat("jpeg")
         .jpeg({quality: 100})
-        .toFile(path.join(`public/images/posts/${req.file.filename}`));
+        .toBuffer();
     next();
 }

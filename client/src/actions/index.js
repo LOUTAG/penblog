@@ -10,10 +10,10 @@ export const refreshAccessTokenAction= (refreshAccessToken)=>{
     payload: refreshAccessToken
   }
 };
-export const updateProfilePhotoAction = (profilePhoto)=>{
+export const updateProfilePhotoAction = (profile)=>{
   return{
     type: 'UPDATE_PROFILE_PHOTO',
-    payload: profilePhoto
+    payload: profile
   }
 }
 

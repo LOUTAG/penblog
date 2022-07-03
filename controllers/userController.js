@@ -10,7 +10,7 @@ const { validateMongodbId } = require("../utils/validateMongodbId");
 const sgMail = require("@sendgrid/mail");
 const keys = require("../config/keys");
 const crypto = require("crypto");
-const { cloudinaryUploadImg } = require("../utils/cloudinary");
+const { cloudinaryUploadImg, cloudinaryDeleteImg } = require("../utils/cloudinary");
 const fs = require("fs");
 
 //sendgrid configuration
@@ -66,6 +66,7 @@ exports.login = expressAsyncHandler(async (req, res) => {
     lastName: user.lastName,
     email: user.email,
     profilePhoto: user.profilePhoto,
+    profilePhotoId: user.profilePhotoId,
     isAdmin: user.isAdmin,
     accessToken: generateAccessToken(user._id),
     refreshToken: generateRefreshToken(user._id),
@@ -83,17 +84,25 @@ exports.fetchAll = expressAsyncHandler(async (req, res) => {
   }
 });
 
-exports.searchUser=expressAsyncHandler(async(req, res)=>{
-  const term=req?.body?.term;
-  if(!term) throw new Error('term is missing');
-  try{
-    const response = await Users.find({$or:[{"firstName":{"$regex": term, "$options":"i"}},{"lastName":{"$regex": term, "$options":"i"}}]}, {id:1, firstName:1, lastName:1, profilePhoto:1}).sort({firstName:1});
+exports.searchUser = expressAsyncHandler(async (req, res) => {
+  const term = req?.body?.term;
+  if (!term) throw new Error("term is missing");
+  try {
+    const response = await Users.find(
+      {
+        $or: [
+          { firstName: { $regex: term, $options: "i" } },
+          { lastName: { $regex: term, $options: "i" } },
+        ],
+      },
+      { id: 1, firstName: 1, lastName: 1, profilePhoto: 1 }
+    ).sort({ firstName: 1 });
     console.log(response);
     res.json(response);
-  }catch(error){
+  } catch (error) {
     res.status(400).json(error);
   }
-})
+});
 
 exports.deleteUser = expressAsyncHandler(async (req, res) => {
   const id = req.params.id;
@@ -214,16 +223,22 @@ exports.followUser = expressAsyncHandler(async (req, res) => {
     //if not includes we push into followers array, then save
     userFollowed.followers.push(loginUserId);
     await userFollowed.save();
-    
+
     //prepare the response to the front
-    const response = await Users.findOne({ _id: followUserId }, { followers: 1 }).populate({
+    const response = await Users.findOne(
+      { _id: followUserId },
+      { followers: 1 }
+    ).populate({
       path: "followers",
       select: "_id firstName lastName profilePhoto",
       options: { sort: { firstName: 1 } },
     });
 
     //2. Update the login user following field
-    const loginUser = await Users.findOne({ _id: loginUserId }, {following:1});
+    const loginUser = await Users.findOne(
+      { _id: loginUserId },
+      { following: 1 }
+    );
     if (loginUser.following.includes(followUserId))
       throw `You are already following ${userFollowed.firstName} ${userFollowed.lastName}`;
     //if not includes we push into following array, then save
@@ -440,28 +455,31 @@ exports.resetPassword = expressAsyncHandler(async (req, res) => {
 
 //upload profile photo
 exports.uploadProfilePicture = expressAsyncHandler(async (req, res) => {
-  //1- Get the path of the img
-  const localPath = `public/images/profiles/${req.file.filename}`;
-  console.log('line 445 - localPath: '+localPath);
-  //2- upload to cloudinary
-  const imgUploaded = await cloudinaryUploadImg(localPath);
-  console.log('line 448 - imgUploaded: '+imgUploaded);
+  //*** 1- data ***
+  //Buffer, because file isn't saved on server
+  const buffer = req.file.buffer;
+  //public_id
+  const imageName = req.file.filename.split('.')[0];
 
-  //3- Find the user
+  //*** 2- upload to cloudinary ***
+  const imgUploaded = await cloudinaryUploadImg(buffer, imageName);
+  
+  const profilePhoto = imgUploaded.secure_url;
+  const profilePhotoId = imgUploaded.public_id;
+
+  //*** 3- Find the user ***
   const id = req.user.id;
   try {
     const user = await Users.findOneAndUpdate(
       { _id: id },
-      { $set: { profilePhoto: imgUploaded.url } },
-      { new: true, fields: { profilePhoto: 1 } }
+      { $set: { profilePhoto: profilePhoto, profilePhotoId: profilePhotoId }},
+      { new: true, fields: { profilePhoto: 1,  profilePhotoId:1} }
     );
-
-    //4- Delete the picture
-    // fs.unlink(localPath, (err) => {
-    //   if (err) throw err;
-    //   console.log(`picture from ${localPath} has been deleted`);
-    // });
-
+    // *** 4- delete the old picture if it's not the default one ***
+    const oldProfilePicture = req.user.profilePhotoId;
+    if (oldProfilePicture) {
+      await cloudinaryDeleteImg(oldProfilePicture);
+    }
     res.json(user);
   } catch (error) {
     res.json(error);
@@ -508,7 +526,7 @@ exports.fetchUserData = expressAsyncHandler(async (req, res) => {
         followers: 1,
         following: 1,
         postCount: 1,
-        isAccountVerified: 1
+        isAccountVerified: 1,
       }
     )
       .populate({

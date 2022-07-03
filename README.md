@@ -23,6 +23,8 @@ Les notions abordées dans ce projet :
 
 * **Toastify** Gestion des messages Success & Error
 
+* **Bad Words** Filtrer les bad words dans les posts
+
 * **React Dropzone** Upload de fichiers
 
 Création : 28/06/2022

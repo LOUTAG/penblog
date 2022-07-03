@@ -8,7 +8,7 @@ const authReducer = (state = initialState, action) => {
     case "REFRESH_ACCESS_TOKEN":
       return {...state, accessToken: action.payload}
     case "UPDATE_PROFILE_PHOTO":
-      return {...state, profilePhoto: action.payload}
+      return {...state, profilePhoto: action.payload.profilePhoto, profilePhotoId: action.payload.profilePhotoId}
     default:
       return state;
   }

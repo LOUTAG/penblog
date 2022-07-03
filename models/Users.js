@@ -18,6 +18,10 @@ const userSchema = new Schema(
       type: String,
       default: "/images/avatar.webp",
     },
+    profilePhotoId: {
+      type: String,
+      default: null,
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -157,7 +161,7 @@ userSchema.methods.CreateVerifyAccountToken = async function () {
 };
 
 //password reset/forget
-userSchema.methods.createPasswordResetToken = async function(){
+userSchema.methods.createPasswordResetToken = async function () {
   //1- Create raw token
   const forgetPasswordToken = crypto.randomBytes(32).toString("hex");
 
@@ -166,11 +170,11 @@ userSchema.methods.createPasswordResetToken = async function(){
     .createHash("sha256")
     .update(forgetPasswordToken)
     .digest("hex");
-  
+
   this.passwordResetToken = forgetPasswordTokenHashed;
 
   //3. setup the token's lifespan = 10 minutes
-  this.passwordResetExpires = Date.now()+1000*600*10;
+  this.passwordResetExpires = Date.now() + 1000 * 600 * 10;
 
   return forgetPasswordToken;
 };

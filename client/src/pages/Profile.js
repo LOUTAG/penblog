@@ -158,8 +158,9 @@ const Profile = ({ user, userAuthAction, updateProfilePhotoAction }) => {
         user.accessToken,
         "multipart/form-data"
       );
-      updateProfilePhotoAction(response.profilePhoto);
-      const userUpdated = { ...user, profilePhoto: response.profilePhoto };
+      console.log(response);
+      updateProfilePhotoAction({profilePhoto:response.profilePhoto, profilePhotoId:response.profilePhotoId});
+      const userUpdated = { ...user, profilePhoto: response.profilePhoto, profilePhotoId: response.profilePhotoId };
       localStorage.setItem("user", JSON.stringify(userUpdated));
       toast.success("profile picture has been updated");
     } catch (error) {
