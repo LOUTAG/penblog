@@ -4,7 +4,7 @@ _Voici un réseau social inspiré de facebook et twitter réalisé avec la stack
 
 url : https://arcane-peak-61091.herokuapp.com/
 
-Les notions abordées dans ce projet :
+### Les notions abordées dans ce projet :
 
 <ins>Back-end</ins>
 * **Json Web Token** générer et verifier accessToken & refreshToken.
@@ -26,5 +26,11 @@ Les notions abordées dans ce projet :
 * **Bad Words** Filtrer les bad words dans les posts
 
 * **React Dropzone** Upload de fichiers
+
+
+### Les fonctionnalités à implementer :
+* Infinite Scroll
+* Emails to confirm account
+* Messages between users
 
 Création : 28/06/2022
