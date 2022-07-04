@@ -1,7 +1,11 @@
+import React, {useEffect} from 'react';
 import Header from './Header';
 import Footer from './Footer';
 
 const Layout=({children})=>{
+    useEffect(()=>{
+        window.scrollTo(0,0)
+    },[]);
     return(
         <div className='layout bg-primary'>
             <Header />
