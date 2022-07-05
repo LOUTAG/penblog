@@ -219,7 +219,7 @@ const Profile = ({ user, userAuthAction, updateProfilePhotoAction }) => {
                   }}
                 </Dropzone>:<div className="rounded-full">
                   <img
-                    className="h-20 w-20 rounded-full"
+                    className="h-16 w-16 sm:h-20 sm:w-20 rounded-full"
                     src={userProfile.profilePhoto}
                     alt={userProfile.lastName + " profile picture"}
                   />

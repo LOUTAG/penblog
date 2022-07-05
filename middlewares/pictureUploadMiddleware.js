@@ -1,6 +1,5 @@
 const multer = require('multer');
 const sharp = require('sharp');
-const path = require('path');
 const expressAsyncHandler = require('express-async-handler');
 
 //We have to configure : file destination, file type and file size

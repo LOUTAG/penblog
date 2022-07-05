@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FiMessageSquare, FiChevronDown } from "react-icons/fi";
@@ -9,13 +9,24 @@ import Comment from "./Comment";
 import AddComment from "./AddComment";
 import LikeDislike from "./LikeDislike";
 import { connect } from "react-redux";
-import { userAuthAction } from "../actions";
+import { userAuthAction, postOffsetAction } from "../actions";
 import elapsedTime from "../utils/elapsedTime";
 import EditPost from "./EditPost";
 import { toast } from "react-toastify";
 import axiosJWTRequest from "../utils/axiosJWTRequest";
 
-const Post = ({ post, posts, setPosts, user, userAuthAction }) => {
+const Post = ({
+  post,
+  posts,
+  setPosts,
+  user,
+  userAuthAction,
+  postOffsetAction,
+  index,
+  hasMore,
+  offset,
+  loadingPosts
+}) => {
   const [showOptions, setShowOptions] = useState(false);
   const [edit, setEdit] = useState(false);
   const [comments, setComments] = useState([]);
@@ -28,6 +39,25 @@ const Post = ({ post, posts, setPosts, user, userAuthAction }) => {
   );
   const navigate = useNavigate();
   const ref = useRef();
+  const observer = useRef();
+  const lastPost = useCallback((node) => {
+    if(loadingPosts) return;
+    if(observer.current) observer.current.disconnect();
+
+    //create a new observer
+    const options={
+      root: null, //viewport
+      rootMargin: "0px",
+      threshold: 0.5,
+    };
+    const callback =(entries)=>{
+      if(entries[0].isIntersecting && hasMore){
+        postOffsetAction(offset+1);
+      }
+    };
+    observer.current = new IntersectionObserver(callback, options);
+    if(node) observer.current.observe(node);
+  });
   useEffect(() => {
     const onBodyClick = (event) => {
       if (!ref.current.contains(event.target)) setShowOptions(false);
@@ -122,15 +152,16 @@ const Post = ({ post, posts, setPosts, user, userAuthAction }) => {
     });
   };
   return (
-    <div className="mb-6 flex flex-col rounded-xl bg-white shadow-lg py-3">
+    <div
+      className="mb-6 flex flex-col rounded-xl bg-white shadow-lg py-3"
+      ref={index === posts.length - 1 ? lastPost : null}
+    >
       {loading && <Spinner />}
       <div className="mb-3 flex flex-row justify-between px-4">
         <div className="flex flex-row">
           <div className="relative mr-2">
             <div className="cursor-pointer rounded-full">
-              <Link
-                to={`/profile/${post.author._id}`}
-              >
+              <Link to={`/profile/${post.author._id}`}>
                 <img
                   className="h-12 w-12 rounded-full"
                   src={post.author.profilePhoto}
@@ -282,6 +313,9 @@ const Post = ({ post, posts, setPosts, user, userAuthAction }) => {
 const mapStateToProps = (state) => {
   return {
     user: state.user,
+    offset: state.offset,
   };
 };
-export default connect(mapStateToProps, { userAuthAction })(Post);
+export default connect(mapStateToProps, { userAuthAction, postOffsetAction })(
+  Post
+);

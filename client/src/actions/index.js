@@ -23,3 +23,10 @@ export const searchByCategoryAction=(category)=>{
     payload: category
   }
 }
+
+export const postOffsetAction=(offset)=>{
+  return{
+    type: 'POST_OFFSET',
+    payload: offset
+  }
+}

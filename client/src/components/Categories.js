@@ -44,7 +44,7 @@ const Categories=({categories, display, setDisplay, cat, searchByCategoryAction}
     return(
         <div className={`${!display.categories?"w-0":"w-60 animate-widthGrow bg-primary z-20 shadow"} xl:w-60 2xl:w-[360px] font-Recoleta p-2 h-[calc(100vh-4rem)] 2xl:h-[calc(100vh-5rem)] flex flex-col fixed items-start left-0`}>
           <h2 className={`${!display.categories?"hidden":"block"} text-2xl font-bold uppercase mb-2 p-2 xl:block`}>Categories</h2>
-          <div className="overflow-y-hidden hover:overflow-y-scroll scrollbar w-full">
+          <div className="overflow-y-hidden overscroll-contain scroll-touch hover:overflow-y-scroll active:overflow-y-scroll focus:overflow-y-scroll scrollbar w-full">
             <ul>{renderCategories()}</ul>
           </div>
         </div>

@@ -4,8 +4,8 @@ const { pictureUpload, postPictureResize } = require('../middlewares/pictureUplo
 
 module.exports=(app)=>{
     app.post('/api/posts/create', authMiddleware, pictureUpload.single("image"),  postPictureResize, postController.createPost);
-    app.get('/api/posts/cat/:id', postController.postsByCat);
-    app.get('/api/posts', postController.allPosts);
+    app.post('/api/posts/cat', postController.postsByCat);
+    app.post('/api/posts', postController.allPosts);
     app.get('/api/posts/user/:id', postController.postsByUser);
     app.get('/api/posts/:id', postController.postsById);
     app.put('/api/posts/:id', authMiddleware, pictureUpload.single("image"), postPictureResize, postController.updatePost);

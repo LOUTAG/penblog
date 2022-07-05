@@ -63,8 +63,12 @@ exports.createPost = expressAsyncHandler(async (req, res) => {
   // }
 });
 exports.allPosts = expressAsyncHandler(async (req, res) => {
+  const { offset, limit, time } = req?.body;
+  if (offset === undefined || limit === undefined || time === undefined)
+    throw new Error("Invalid URL");
+
   try {
-    const posts = await Posts.find()
+    const posts = await Posts.find({createdAt: {$lt: time}})
       .populate("author", {
         _id: 1,
         firstName: 1,
@@ -75,18 +79,20 @@ exports.allPosts = expressAsyncHandler(async (req, res) => {
       .populate("likes", { _id: 1, firstName: 1, lastName: 1 })
       .populate("dislikes", { _id: 1, firstName: 1, lastName: 1 })
       .populate("category", { title: 1 })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit);
     res.json(posts);
   } catch (error) {
     res.json(error);
   }
 });
 exports.postsByCat = expressAsyncHandler(async (req, res) => {
-  const id = req?.params?.id;
-  if (!id) throw new Error("Invalid URL");
+  const {id, offset, limit, time } = req?.body;
+  if(!id || offset===undefined || !limit || !time) throw new Error("Invalid URL");
   validateMongodbId(id);
   try {
-    const response = await Posts.find({ category: id })
+    const response = await Posts.find({ category: id, createdAt: {$lt : time}})
       .populate("author", {
         _id: 1,
         firstName: 1,
@@ -97,7 +103,9 @@ exports.postsByCat = expressAsyncHandler(async (req, res) => {
       .populate("likes", { _id: 1, firstName: 1, lastName: 1 })
       .populate("dislikes", { _id: 1, firstName: 1, lastName: 1 })
       .populate("category", { title: 1 })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit);
     res.json(response);
   } catch (error) {
     res.json(error);

@@ -8,7 +8,10 @@ import Categories from "../components/Categories";
 import Spinner from "../components/Spinner";
 
 //store
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
+
+//actions
+import { postOffsetAction } from "../actions";
 
 //axios
 import axios from "axios";
@@ -16,14 +19,23 @@ import axios from "axios";
 //toastify
 import { toast } from "react-toastify";
 
-const Home = ({cat}) => {
+const Home = ({ cat, offset, postOffsetAction }) => {
   //state
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [display, setDisplay] = useState({ categories: false, users: false });
+  const [limit, setLimit] = useState(1);
+  const [time, setTime] = useState(Date.now());
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [isMounted, setIsMounted]=useState(false);
+  const [fetchTrigger, setFetchTrigger]=useState(false);
+
   //useEffect
+  //fetch categories
   useEffect(() => {
+    setIsMounted(true);
     const fetchCategories = async () => {
       setLoading(true);
       try {
@@ -38,29 +50,63 @@ const Home = ({cat}) => {
     fetchCategories();
   }, []);
 
+  //fetch posts
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
-      if(!cat) {
-        try{
-          const response = await axios.get("/api/posts");
-          setPosts(response.data);
-        }catch(error){
+      if (!cat) {
+        try {
+          setLoadingPosts(true);
+          const response = await axios.post("/api/posts", {
+            offset,
+            limit,
+            time,
+          });
+          setHasMore(response.data.length > 0);
+          setPosts([...posts, ...response.data]);
+          setLoadingPosts(false);
+        } catch (error) {
+          setLoadingPosts(false);
           console.log(error);
-        toast.error("Something went wrong, please try later");
+          toast.error("Something went wrong, please try later");
         }
-      }else{
-        try{
-          const response = await axios.get(`/api/posts/cat/${cat.id}`);
-          setPosts(response.data);
-        }catch(error){
+      } else {
+        try {
+          setLoadingPosts(true);
+          const response = await axios.post("/api/posts/cat", {
+            id: cat.id,
+            offset,
+            limit,
+            time,
+          });
+          setHasMore(response.data.length > 0);
+          setPosts([...posts, ...response.data]);
+          setLoadingPosts(false);
+        } catch (error) {
+          setLoadingPosts(false);
           console.log(error);
-        toast.error("Something went wrong, please try later");
+          toast.error("Something went wrong, please try later");
         }
       }
       setLoading(false);
     };
     fetchPosts();
+  }, [offset, fetchTrigger]);
+
+  useEffect(()=>{
+    if(isMounted){
+      if(offset===0) return setFetchTrigger(!fetchTrigger);
+      postOffsetAction(0);
+    }
+  },[time])
+
+  useEffect(() => {
+    if(isMounted){
+      console.log('mounted');
+      setHasMore(true);
+      setTime(Date.now());
+      setPosts([]);
+    }
   }, [cat]);
 
   return (
@@ -100,14 +146,26 @@ const Home = ({cat}) => {
           setDisplay={setDisplay}
         />
         {/* feed */}
-        <div className={`${display.categories&&"animate-horizontal translate-x-60"} ${display.users&&"animate-reverseHorizontal -translate-x-60"} w-[744px] font-Recoleta py-2 md:px-8 h-full overflow-y-hidden flex flex-col mx-auto`} onClick={()=>(display.users || display.categories) && setDisplay({categories: false, users: false}) }>
+        <div
+          className={`${
+            display.categories && "animate-horizontal translate-x-60"
+          } ${
+            display.users && "animate-reverseHorizontal -translate-x-60"
+          } w-[744px] font-Recoleta py-2 md:px-8 h-full overflow-y-hidden flex flex-col mx-auto`}
+          onClick={() =>
+            (display.users || display.categories) &&
+            setDisplay({ categories: false, users: false })
+          }
+        >
           <h2 className="text-2xl font-bold uppercase mb-2 p-2 w-full text-center">
-            {cat?`Post Category : ${cat.title}`:"Latest Posts"}
+            {cat ? `Post Category : ${cat.title}` : "Latest Posts"}
           </h2>
           <Posts
-          posts={posts}
-          setPosts={setPosts}
-        />
+            posts={posts}
+            setPosts={setPosts}
+            hasMore={hasMore}
+            loadingPosts={loadingPosts}
+          />
         </div>
         {/* users */}
         <Users display={display} setDisplay={setDisplay} />
@@ -115,9 +173,10 @@ const Home = ({cat}) => {
     </Layout>
   );
 };
-const mapStateToProps=(state)=>{
+const mapStateToProps = (state) => {
   return {
-    cat: state.cat
+    cat: state.cat,
+    offset: state.offset,
   };
 };
-export default connect(mapStateToProps)(Home);
+export default connect(mapStateToProps, { postOffsetAction })(Home);
