@@ -39,7 +39,7 @@
     background-color: #90816b;
     border-radius: 9999px;
   }
-  .scroll-touch {
+  .scroll-touch-effect {
     -webkit-overflow-scrolling: touch;
   }
 }

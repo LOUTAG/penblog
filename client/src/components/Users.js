@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { connect } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { HiOutlineSearch } from "react-icons/hi";
@@ -12,6 +12,7 @@ const Users = ({ user, userAuthAction, display, setDisplay }) => {
   const [term, setTerm] = useState("");
   const [isMount, setIsMount] = useState(false);
   const navigate = useNavigate();
+  const userRef = useRef();
   useEffect(() => {
     const fetchAllFollowings = async () => {
       try {
@@ -44,6 +45,11 @@ const Users = ({ user, userAuthAction, display, setDisplay }) => {
   }, [inputvalue]);
 
   //helpers
+  const onScrollTouch = () => {
+    userRef.current.style.overflowY === "scroll"
+      ? (userRef.current.style.overflowY = "hidden")
+      : (userRef.current.style.overflowY = "scroll");
+  };
   const logout = () => {
     navigate("/login");
     localStorage.removeItem("user");
@@ -91,7 +97,12 @@ const Users = ({ user, userAuthAction, display, setDisplay }) => {
       } xl:w-60 2xl:w-[360px] font-Recoleta p-2 h-[calc(100vh-4rem)] 2xl:h-[calc(100vh-5rem)] flex flex-col fixed items-start right-0`}
     >
       <h2 className="text-2xl font-bold uppercase mb-2 p-2">Users</h2>
-      <div className="overflow-y-hidden overflow-x-hidden hover:overflow-y-scroll scrollbar w-full">
+      <div
+        ref={userRef}
+        className="overflow-y-hidden overflow-x-hidden hover:overflow-y-scroll scrollbar w-full overscroll-contain scroll-touch-effect"
+        onTouchStart={() => onScrollTouch()}
+        onTouchEnd={() => onScrollTouch()}
+      >
         <form className="bg-dark-primary w-[calc(100%-0.25rem)] rounded-2xl flex items-center px-3 mb-2">
           <HiOutlineSearch size={24} className="mr-2 text-black-primary" />
           <input

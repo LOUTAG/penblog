@@ -23,13 +23,14 @@ url : https://arcane-peak-61091.herokuapp.com/
 
 * **Toastify** Gestion des messages Success & Error
 
+* **Infinite Scroll from scratch** Requêtes des posts en fonction de limit & offset, déclenché via Intersection Observer API 
+
 * **Bad Words** Filtrer les bad words dans les posts
 
 * **React Dropzone** Upload de fichiers
 
 
 ### Les fonctionnalités à implementer :
-* Infinite Scroll
 * Emails to confirm account
 * Messages between users
 

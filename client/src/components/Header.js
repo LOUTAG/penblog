@@ -41,22 +41,6 @@ const Header = ({ user, userAuthAction }) => {
       path: null
     },
     {
-      name: "Home",
-      path: "/home",
-    },
-    {
-      name: "Create",
-      path: "/create",
-    },
-    {
-      name: "Posts",
-      path: "/posts",
-    },
-    {
-      name: "Users",
-      path: "/users",
-    },
-    {
       name: "Add Category",
       path: "/add-category",
     },
@@ -74,7 +58,7 @@ const Header = ({ user, userAuthAction }) => {
         return (
           <li
             key={key}
-            className="px-1 lg:px-2 xl:px-3 text-xl xl:text-2xl 2xl:text-3xl font-semibold"
+            className={`px-1 lg:px-2 xl:px-3 text-xl xl:text-2xl 2xl:text-3xl font-semibold ${(showMobileMenu && item.name==='Search')&&'mb-2'}`}
           >
             {item.name==='Search'?<SearchUSer />:<Link
               className={`py-1 px-2 block ${
@@ -96,7 +80,7 @@ const Header = ({ user, userAuthAction }) => {
         return (
           <li
             key={key}
-            className="px-4 lg:px-6 xl:px-8 text-xl xl:text-2xl 2xl:text-3xl font-semibold"
+            className={`px-4 lg:px-6 xl:px-8 text-xl xl:text-2xl 2xl:text-3xl font-semibold ${(showMobileMenu && item.name==='Search')&&'mb-2'}`}
           >
             {item.name==='Search'?<SearchUSer />:<Link
               className={`py-1 px-2 block ${
