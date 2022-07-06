@@ -9,7 +9,6 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
-import Posts from "./pages/Posts";
 import AddCategory from "./pages/AddCategory";
 import Categories from "./pages/Categories";
 import Home from "./pages/Home";
@@ -38,7 +37,6 @@ const App=()=>{
           <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/create" element={<ProtectedRoute><CreatePost/></ProtectedRoute>} />
-          <Route path="/posts" element={<ProtectedRoute><Posts/></ProtectedRoute>} />
           <Route path="/add-category" element={<ProtectedRoute><AddCategory/></ProtectedRoute>} />
           <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
           <Route path="*" element={<Home />} />

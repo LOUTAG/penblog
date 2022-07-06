@@ -8,56 +8,69 @@ import Spinner from "../components/Spinner";
 import { toast } from "react-toastify";
 import Dropzone from "react-dropzone";
 import axiosJWTRequest from "../utils/axiosJWTRequest";
-import { FiChevronDown, FiChevronUp, FiUpload } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiUpload, FiMail } from "react-icons/fi";
 import Following from "../components/Following";
 import Follower from "../components/Follower";
 import FollowUnfollow from "../components/FollowUnfollow";
+import FormMessage from "../components/FormMessage";
 import axios from "axios";
 import Post from "../components/Post";
 
 const Profile = ({ user, userAuthAction, updateProfilePhotoAction }) => {
   //params
-  const {id} = useParams();
+  const { id } = useParams();
   //state
-  const [userProfile, setUserProfile]=useState({});
-  const [myProfile, setMyProfile]=useState(user.id===id?true:false);
+  const [userProfile, setUserProfile] = useState({});
+  const [myProfile, setMyProfile] = useState(user.id === id ? true : false);
   const [posts, setPosts] = useState(null);
   const [displayFollowers, setDisplayFollowers] = useState(false);
   const [displayFollowings, setDisplayFollowings] = useState(false);
   const [displayPosts, setDisplayPosts] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [formMessage, setFormMessage]=useState(false);
   //navigate
   const navigate = useNavigate();
 
   //effect
-  useEffect(()=>{
-    if(isMounted) {
-    setMyProfile((user.id===id?true:false));
-    setDisplayFollowers(false);
-    setDisplayFollowings(false);
-    setDisplayPosts(false);
-    setPosts(null);
+  useEffect(() => {
+    if (isMounted) {
+      setMyProfile(user.id === id ? true : false);
+      setDisplayFollowers(false);
+      setDisplayFollowings(false);
+      setDisplayPosts(false);
+      setPosts(null);
     }
-  },[id])
+  }, [id]);
 
   useEffect(() => {
-    if(user.id===id){
-      const getMoreData = async()=>{
-        try{
+    if (user.id === id) {
+      const getMoreData = async () => {
+        try {
           setLoading(true);
           const response = await axios.get(`/api/users/more-data/${id}`);
-          const data ={id:user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, createdAt: user.createdAt, profilePhoto: user.profilePhoto, followers: response.data.followers, following: response.data.following, postCount: response.data.postCount, isAccountVerified: user.isAccountVerified};
+          const data = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            createdAt: user.createdAt,
+            profilePhoto: user.profilePhoto,
+            followers: response.data.followers,
+            following: response.data.following,
+            postCount: response.data.postCount,
+            isAccountVerified: user.isAccountVerified,
+          };
           setUserProfile(data);
           setLoading(false);
-        }catch(error){
+        } catch (error) {
           setLoading(false);
           console.log(error);
           toast.error("Something went wrong, please try later");
         }
-      }
+      };
       getMoreData();
-    }else{
+    } else {
       const fetchUserData = async () => {
         try {
           setLoading(true);
@@ -79,7 +92,7 @@ const Profile = ({ user, userAuthAction, updateProfilePhotoAction }) => {
       const fetchPostsByUser = async () => {
         try {
           //now we want post by user
-          
+
           const response = await axios.get(`/api/posts/user/${id}`);
           setPosts(response.data);
         } catch (error) {
@@ -101,7 +114,6 @@ const Profile = ({ user, userAuthAction, updateProfilePhotoAction }) => {
     userAuthAction(null);
   }, []);
 
-  
   const renderFollowings = () => {
     return userProfile.following.map((item, index) => {
       let key = Date.now() + "-" + index;
@@ -129,9 +141,9 @@ const Profile = ({ user, userAuthAction, updateProfilePhotoAction }) => {
       return <Post key={key} post={item} posts={posts} setPosts={setPosts} />;
     });
   };
-  const onVerifyClick=()=>{
-    console.log('onVerifyClick');
-  }
+  const onVerifyClick = () => {
+    console.log("onVerifyClick");
+  };
   const dropzoneError = (code) => {
     switch (code) {
       case "file-invalid-type":
@@ -159,8 +171,15 @@ const Profile = ({ user, userAuthAction, updateProfilePhotoAction }) => {
         "multipart/form-data"
       );
       console.log(response);
-      updateProfilePhotoAction({profilePhoto:response.profilePhoto, profilePhotoId:response.profilePhotoId});
-      const userUpdated = { ...user, profilePhoto: response.profilePhoto, profilePhotoId: response.profilePhotoId };
+      updateProfilePhotoAction({
+        profilePhoto: response.profilePhoto,
+        profilePhotoId: response.profilePhotoId,
+      });
+      const userUpdated = {
+        ...user,
+        profilePhoto: response.profilePhoto,
+        profilePhotoId: response.profilePhotoId,
+      };
       localStorage.setItem("user", JSON.stringify(userUpdated));
       toast.success("profile picture has been updated");
     } catch (error) {
@@ -178,111 +197,137 @@ const Profile = ({ user, userAuthAction, updateProfilePhotoAction }) => {
   //render
   return (
     <Layout>
+      {formMessage && <FormMessage userTarget={userProfile} setFormMessage={setFormMessage} />}
       {loading && <Spinner />}
       <div className="w-[744px] flex flex-col justify-center items-center mx-auto font-Recoleta px-2">
         <div className="w-full flex flex-col rounded-xl bg-white shadow-lg p-3 mb-8">
           <div className="mb-3 flex flex-row flex-wrap justify-between px-4 after:content-[''] after:h-[1px] after:bg-gray-300 after:w-[70%] after:mt-4 after:mx-auto">
             <div className="flex flex-row">
               <div className="relative mr-2">
-                {myProfile?<Dropzone
-                  onDropAccepted={(acceptedFiles) =>
-                    updateProfilePicture(acceptedFiles[0])
-                  }
-                  onDropRejected={(rejectedFiles) =>
-                    dropzoneError(rejectedFiles[0].errors[0].code)
-                  }
-                  accept={{
-                    "image/*": [".png", ".jpeg", ".jpg", ".gif", ".webp"],
-                  }}
-                  maxFiles={1}
-                  maxSize={1000000}
-                >
-                  {({ getRootProps, getInputProps }) => {
-                    return (
-                      <section className="w-full">
-                        <div {...getRootProps()}>
-                          <input {...getInputProps()} />
-                          <div className="cursor-pointer rounded-full">
-                            <img
-                              className="h-16 w-16 sm:h-20 sm:w-20 rounded-full"
-                              src={user.profilePhoto}
-                              alt={user.lastName + " profile picture"}
-                            />
-                            <FiUpload
-                              size={80}
-                              className={`text-transparent p-5 hover:text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hover:drop-shadow`}
-                            />
+                {myProfile ? (
+                  <Dropzone
+                    onDropAccepted={(acceptedFiles) =>
+                      updateProfilePicture(acceptedFiles[0])
+                    }
+                    onDropRejected={(rejectedFiles) =>
+                      dropzoneError(rejectedFiles[0].errors[0].code)
+                    }
+                    accept={{
+                      "image/*": [".png", ".jpeg", ".jpg", ".gif", ".webp"],
+                    }}
+                    maxFiles={1}
+                    maxSize={1000000}
+                  >
+                    {({ getRootProps, getInputProps }) => {
+                      return (
+                        <section className="w-full">
+                          <div {...getRootProps()}>
+                            <input {...getInputProps()} />
+                            <div className="cursor-pointer rounded-full">
+                              <img
+                                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full"
+                                src={user.profilePhoto}
+                                alt={user.lastName + " profile picture"}
+                              />
+                              <FiUpload
+                                size={80}
+                                className={`text-transparent p-5 hover:text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hover:drop-shadow`}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </section>
-                    );
-                  }}
-                </Dropzone>:<div className="rounded-full">
-                  <img
-                    className="h-16 w-16 sm:h-20 sm:w-20 rounded-full"
-                    src={userProfile.profilePhoto}
-                    alt={userProfile.lastName + " profile picture"}
-                  />
-                </div>}
+                        </section>
+                      );
+                    }}
+                  </Dropzone>
+                ) : (
+                  <div className="rounded-full">
+                    <img
+                      className="h-16 w-16 sm:h-20 sm:w-20 rounded-full"
+                      src={userProfile.profilePhoto}
+                      alt={userProfile.lastName + " profile picture"}
+                    />
+                  </div>
+                )}
               </div>
               <div className="ml-8 flex flex-col justify-center">
                 <div className="text-xl sm:text-3xl font-bold flex items-center justify-start">
-                  <span className="mr-2">{userProfile.firstName} {userProfile.lastName}</span>
-                  {!myProfile&&<FollowUnfollow userProfile={userProfile} setUserProfile={setUserProfile} />}
+                  <span className="mr-2">
+                    {userProfile.firstName} {userProfile.lastName}
+                  </span>
+                  {!myProfile && (
+                    <FollowUnfollow
+                      userProfile={userProfile}
+                      setUserProfile={setUserProfile}
+                    />
+                  )}
                 </div>
                 <span className="text-gray-500 text-sm">
-                  registered since : {userProfile.createdAt&&DateFormatter(userProfile.createdAt)}
+                  registered since :{" "}
+                  {userProfile.createdAt &&
+                    DateFormatter(userProfile.createdAt)}
                 </span>
               </div>
             </div>
-            {!userProfile.isAccountVerified ? (
-              <div className={`py-1 px-2 bg-myred font-semibold text-white h-fit rounded ${myProfile && 'cursor-pointer'}`} onClick={()=>myProfile && onVerifyClick()}>
-                Unverified Account
-              </div>
-            ) : (
-              <div className="py-1 px-2 bg-secondary font-semibold text-white h-fit rounded">
-                Account Verified
-              </div>
+            {user.id !== id && (
+              <button className="py-1 px-2 text-lg bg-dark-primary font-semibold rounded flex items-center h-fit hover:opacity-90" onClick={()=>setFormMessage(true)}>
+              <FiMail className="inline-block" /> Send Message
+            </button>
             )}
           </div>
           <div className="mb-3 px-4 flex flex-row items-center justify-start">
-            <div className="w-24 sm:w-28 mr-2 sm:text-lg font-semibold">Email :</div>
-            <div className="sm:text-lg font-semibold break-all">{userProfile.email}</div>
+            <div className="w-24 sm:w-28 mr-2 sm:text-lg font-semibold">
+              Email :
+            </div>
+            <div className="sm:text-lg font-semibold break-all">
+              {userProfile.email}
+            </div>
           </div>
           <div className="mb-3 px-4 flex flex-row items-center justify-start">
-            <div className="w-24 sm:w-28 mr-2 sm:text-lg font-semibold">Followers :</div>
-            <div className="sm:text-lg font-semibold">{userProfile.followers?.length}</div>
+            <div className="w-24 sm:w-28 mr-2 sm:text-lg font-semibold">
+              Followers :
+            </div>
+            <div className="sm:text-lg font-semibold">
+              {userProfile.followers?.length}
+            </div>
           </div>
           <div className="mb-3 px-4 flex flex-row items-center justify-start">
-            <div className="w-24 sm:w-28 mr-2 sm:text-lg font-semibold">Followings :</div>
-            <div className="sm:text-lg font-semibold">{userProfile.following?.length}</div>
+            <div className="w-24 sm:w-28 mr-2 sm:text-lg font-semibold">
+              Followings :
+            </div>
+            <div className="sm:text-lg font-semibold">
+              {userProfile.following?.length}
+            </div>
           </div>
           <div className="mb-3 px-4 flex flex-row items-center justify-start">
-            <div className="w-24 sm:w-28 mr-2 sm:text-lg font-semibold">Posts :</div>
-            <div className="sm:text-lg font-semibold">{userProfile.postCount}</div>
+            <div className="w-24 sm:w-28 mr-2 sm:text-lg font-semibold">
+              Posts :
+            </div>
+            <div className="sm:text-lg font-semibold">
+              {userProfile.postCount}
+            </div>
           </div>
         </div>
         {userProfile.postCount > 0 && (
           <React.Fragment>
-          <div className="w-full flex flex-col rounded-xl bg-white shadow-lg p-3 mb-8">
-            <div className="flex justify-between px-4 mb-4 items-center">
-              <div className="text-xl sm:text-3xl font-bold">Posts</div>
-              {displayPosts ? (
-                <FiChevronUp
-                  size={36}
-                  className="cursor-pointer"
-                  onClick={() => setDisplayPosts(false)}
-                />
-              ) : (
-                <FiChevronDown
-                  size={36}
-                  className="cursor-pointer"
-                  onClick={() => setDisplayPosts(true)}
-                />
-              )}
+            <div className="w-full flex flex-col rounded-xl bg-white shadow-lg p-3 mb-8">
+              <div className="flex justify-between px-4 mb-4 items-center">
+                <div className="text-xl sm:text-3xl font-bold">Posts</div>
+                {displayPosts ? (
+                  <FiChevronUp
+                    size={36}
+                    className="cursor-pointer"
+                    onClick={() => setDisplayPosts(false)}
+                  />
+                ) : (
+                  <FiChevronDown
+                    size={36}
+                    className="cursor-pointer"
+                    onClick={() => setDisplayPosts(true)}
+                  />
+                )}
+              </div>
             </div>
-          </div>
-          {displayPosts && posts &&(
+            {displayPosts && posts && (
               <ul className="animate-appear">{renderPosts()}</ul>
             )}
           </React.Fragment>
@@ -344,5 +389,5 @@ const mapStateToProps = (state) => {
 };
 export default connect(mapStateToProps, {
   userAuthAction,
-  updateProfilePhotoAction
+  updateProfilePhotoAction,
 })(Profile);

@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
-const Users = require("../models/Users");
-const Posts = require("../models/Posts");
+const Users = require("../models/Users");;
 const expressAsyncHandler = require("express-async-handler");
 const {
   generateAccessToken,
@@ -11,7 +10,6 @@ const sgMail = require("@sendgrid/mail");
 const keys = require("../config/keys");
 const crypto = require("crypto");
 const { cloudinaryUploadImg, cloudinaryDeleteImg } = require("../utils/cloudinary");
-const fs = require("fs");
 
 //sendgrid configuration
 sgMail.setApiKey(keys.sendgridApiKey);
@@ -45,7 +43,7 @@ exports.register = expressAsyncHandler(async (req, res) => {
     await user.save();
     res.json("Your account has been successfully created");
   } catch (error) {
-    res.status(400).json(error);
+    res.json(error);
   }
 });
 
@@ -100,7 +98,7 @@ exports.searchUser = expressAsyncHandler(async (req, res) => {
     console.log(response);
     res.json(response);
   } catch (error) {
-    res.status(400).json(error);
+    res.json(error);
   }
 });
 
@@ -541,6 +539,6 @@ exports.fetchUserData = expressAsyncHandler(async (req, res) => {
       });
     res.json(response);
   } catch (error) {
-    res.status(500).json(error);
+    res.json(error);
   }
 });

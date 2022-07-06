@@ -155,11 +155,11 @@ const Header = ({ user, userAuthAction }) => {
                 } absolute origin-top-right right-0 bg-white rounded-md mt-2 shadow-lg animate-appear`}
               >
                 <ul className="list-none w-48 py-1">
-                  <li className="block px-4 py-2 hover:bg-myblack hover:text-white">
-                    <Link to={`/profile/${user.id}`}>My Profile</Link>
+                  <li className="block hover:bg-myblack hover:text-white">
+                    <Link className="px-4 py-2 block" to={`/profile/${user.id}`}>My Profile</Link>
                   </li>
-                  <li className="block px-4 py-2 hover:bg-myblack hover:text-white">
-                    <Link to="/change-password">Change my password</Link>
+                  <li className="block hover:bg-myblack hover:text-white">
+                    <Link className="px-4 py-2 block" to="/change-password">Change my password</Link>
                   </li>
                   <li
                     className="block px-4 py-2 cursor-pointer hover:bg-myblack hover:text-white"

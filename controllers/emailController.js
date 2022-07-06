@@ -10,6 +10,7 @@ sgMail.setApiKey(keys.sendgridApiKey);
 
 
 exports.sendEmail = expressAsyncHandler(async(req, res)=>{
+    return res.json('yes');
     const userId = req.user.id;
     const userEmail = req.user.email;
     const targetEmail = req.body?.email;
@@ -19,9 +20,6 @@ exports.sendEmail = expressAsyncHandler(async(req, res)=>{
     if(!targetEmail || !subject || !message ) throw new Error('some fields are missing');
 
     const filter = new Filter();
-    const newBadWords = ['fait chier', 'putain', 'enculer', 'con', 'connard', 'connasse', 'salaud', 'salope', 'ta gueule'];
-
-    filter.addWords(...newBadWords);
     const isProfane = filter.isProfane(subject, message);
     //if a bad word, profane return true
     if(isProfane){
@@ -36,7 +34,7 @@ exports.sendEmail = expressAsyncHandler(async(req, res)=>{
             html: message
         };
         //send msg
-        msgStatus = await sgMail.send(msg);
+        const msgStatus = await sgMail.send(msg);
         console.log(msgStatus);
         //Do a copy of our mail inside our db.
         const msgSaved = new Emails({
