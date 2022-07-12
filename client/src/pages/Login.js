@@ -48,10 +48,10 @@ const Login = ({user, userAuthAction}) => {
       userAuthAction(response.data);
       navigate("/home");
     } catch (error) {
+      console.log(error);
       setLoading(false);
       const message = error?.response?.data?.message;
       if (message) return toast.error(message);
-      console.log(error);
       toast.error("Something went wrong, please try later");
     }
   };

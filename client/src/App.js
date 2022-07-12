@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import LandingPage from "./pages/LandingPage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import AccountVerification from "./pages/AccountVerification";
 import ForgotPassword from "./pages/ForgotPassword";
 import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
@@ -33,6 +34,7 @@ const App=()=>{
           <Route path='/' exact element={<LandingPage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/verify-account/:token" element={<AccountVerification />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

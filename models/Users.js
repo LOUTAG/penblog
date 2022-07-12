@@ -154,7 +154,7 @@ userSchema.methods.CreateVerifyAccountToken = async function () {
   //at last digest give the encoding system
 
   //3. setup the token's lifespan
-  this.accountVerificationTokenExpires = Date.now() + 1000 * 60 * 10; //expires in 10 minutes
+  this.accountVerificationTokenExpires = Date.now() + 1000 * 60 * 15; //expires in 10 minutes
 
   //4. return the raw token
   return verificationToken;
@@ -173,8 +173,8 @@ userSchema.methods.createPasswordResetToken = async function () {
 
   this.passwordResetToken = forgetPasswordTokenHashed;
 
-  //3. setup the token's lifespan = 10 minutes
-  this.passwordResetExpires = Date.now() + 1000 * 600 * 10;
+  //3. setup the token's lifespan = 15 minutes
+  this.passwordResetExpires = Date.now() + 1000 * 60 * 15;
 
   return forgetPasswordToken;
 };

@@ -7,5 +7,6 @@ module.exports={
     sendgridApiKey: process.env.SENDGRID_KEY,
     CLOUDINARY_NAME: process.env.CLOUDINARY_NAME,
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
-    CLOUDINARY_API_SECRET_KEY: process.env.CLOUDINARY_API_SECRET_KEY
+    CLOUDINARY_API_SECRET_KEY: process.env.CLOUDINARY_API_SECRET_KEY,
+    CLIENT_URL: process.env.CLIENT_URL
 }

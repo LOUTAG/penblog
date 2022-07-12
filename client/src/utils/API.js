@@ -1,11 +1,14 @@
+/*** axios interceptor ***/
 import axios from "axios";
 import store from "../store";
 import { refreshAccessTokenAction } from "../actions";
 
 //grab user state
 const state = store.getState();
-const user = state.user;
-const { accessToken, refreshToken } = user;
+const user = state?.user;
+console.log(user);
+const accessToken = user?.accessToken;
+const refreshToken = user?.refreshToken;
 
 const instance = axios.create({
   baseURL: "/api",
@@ -13,7 +16,6 @@ const instance = axios.create({
 instance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`; //by default attach accessToken
 instance.interceptors.response.use(
   (response) => {
-    console.log(response);
     return response;
   },
   async (error) => {
@@ -45,14 +47,8 @@ instance.interceptors.response.use(
             "Authorization"
           ] = `Bearer ${refreshAccessToken}`;
           //attach the new accessToken for the next time
-
-          originalRequest.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${refreshAccessToken}`;
+          originalRequest.headers["Authorization"] = `Bearer ${refreshAccessToken}`;
           //quand nous allons executer une nouvelle fois la requete avec le token mis à jours
-          return instance(originalRequest);
-          //something is wrong with that !
-          //Resend original request with accessToken refreshed
         })
         .catch((error) => {
           if (
@@ -64,14 +60,16 @@ instance.interceptors.response.use(
           //wrong token, user doesn't exist..
           const message = error?.response?.data?.message;
           if (message) throw message;
-          throw "Something went wrong, please try later";
+          throw new Error("Something went wrong, please try later");
         });
+        return instance(originalRequest);
+          //Resend original request with accessToken refreshed
     } else {
       if (error?.response?.data?.name === "InvalidUser")
         throw error.response.data.name;
       const message = error?.response?.data?.message;
       if (message) throw message;
-      throw "Something went wrong, please try later";
+      throw new Error("Something went wrong, please try later");
     }
   }
 );

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { connect } from "react-redux";
-import { userAuthAction} from "../actions";
+import { userAuthAction } from "../actions";
 import { RiCloseLine } from "react-icons/ri";
 import { toast } from "react-toastify";
 import instance from "../utils/API";
@@ -47,23 +47,28 @@ const FormMessage = ({ user, userTarget, setFormMessage, userAuthAction }) => {
   }, [textMessage]);
 
   //helpers
-  const onFormSubmit = async(event) => {
+  const onFormSubmit = async (event) => {
     event.preventDefault();
-    if(subject==="") return toast.error("Please provide a subject");
+    if (subject === "") return toast.error("Please provide a subject");
     if (textMessage === "") return toast.error("Message cannot stay empty");
-    const payload = {targetEmail: userTarget.email, subject: subject, message: textMessage}
-    try{
-        const response = await instance.post('/emails/send', {payload});
-        console.log(response);
-    }catch(error){
-        console.log(error);
-        if (error === "InvalidUser" || error === "TokenExpiredError") {
-            //either the account is deleted, either token expired
-            toast.error("Session expired, please login again");
-            logout();
-        } else {
-            toast.error("Something went wrong, please try later");
-        }
+    try {
+      const response = await instance.post("/emails/send", {
+        email: userTarget.email,
+        subject: subject,
+        message: textMessage,
+      });
+      toast.success(response.data);
+      setFormMessage(false);
+      
+    } catch (error) {
+      console.log(error);
+      if (error === "InvalidUser" || error === "TokenExpiredError") {
+        //either the account is deleted, either token expired
+        toast.error("Session expired, please login again");
+        logout();
+      } else {
+        toast.error("Something went wrong, please try later");
+      }
     }
   };
   const logout = useCallback(() => {
@@ -99,7 +104,7 @@ const FormMessage = ({ user, userTarget, setFormMessage, userAuthAction }) => {
                 placeholder="Subject"
                 maxLength="40"
                 value={subject}
-                onChange={(event)=>setSubject(event.target.value)}
+                onChange={(event) => setSubject(event.target.value)}
               />
             </div>
             <div>
@@ -135,4 +140,4 @@ const mapStateToProps = (state) => {
     user: state.user,
   };
 };
-export default connect(mapStateToProps, {userAuthAction})(FormMessage);
+export default connect(mapStateToProps, { userAuthAction })(FormMessage);

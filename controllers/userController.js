@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Users = require("../models/Users");;
+const Users = require("../models/Users");
 const expressAsyncHandler = require("express-async-handler");
 const {
   generateAccessToken,
@@ -9,7 +9,11 @@ const { validateMongodbId } = require("../utils/validateMongodbId");
 const sgMail = require("@sendgrid/mail");
 const keys = require("../config/keys");
 const crypto = require("crypto");
-const { cloudinaryUploadImg, cloudinaryDeleteImg } = require("../utils/cloudinary");
+const {
+  cloudinaryUploadImg,
+  cloudinaryDeleteImg,
+} = require("../utils/cloudinary");
+const e = require("express");
 
 //sendgrid configuration
 sgMail.setApiKey(keys.sendgridApiKey);
@@ -40,8 +44,38 @@ exports.register = expressAsyncHandler(async (req, res) => {
       email,
       password,
     });
+    const token = await user.CreateVerifyAccountToken();
     await user.save();
-    res.json("Your account has been successfully created");
+
+    const msg = {
+      to: user.email,
+      from: "tagliasco.lou@orange.fr",
+      subject: "Please confirm your account",
+      html: `<div class="content">
+                <table style="width:100%; border-spacing:0;border-collapse: separate;">
+                    <tbody>
+                        <tr>
+                            <td style="font-size:16px; vertical-align: top;">
+                                <h2 style="font-size:24px; font-weight:bold; margin-bottom:30px;">Let's verify your email to confirm your penBlog account</h2>
+                                <p style="margin-bottom: 30px;">
+                                    <a style="color: #294661; font-weight:300;" href="${keys.CLIENT_URL}/verify-account/${token}" target="_blank">${user.email}</a>
+                                </p>
+                                <p style="margin-bottom: 30px;">Your link is active for 15 minutes. After that, you will need to resend the verification email.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                        <td style="font-size:16px; vertical-align: top; text-align:center;">
+                                <a style="color: #fff; background-color: #294661; font-weight:300; cursor: pointer; padding: 12px 45px;" href="${keys.CLIENT_URL}/verify-account/${token}" target="_blank">VERIFY</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>`,
+    };
+    await sgMail.send(msg);
+    res.json(
+      "Please check your inbox to confirm your account. Link expires in 15 minutes"
+    );
   } catch (error) {
     res.json(error);
   }
@@ -58,6 +92,40 @@ exports.login = expressAsyncHandler(async (req, res) => {
   //Check if password match
   if (!(await user.isPasswordMatched(req.body.password)))
     throw new Error("password incorrect");
+
+  if (!user.isAccountVerified) {
+    if (user?.accountVerificationTokenExpires===undefined || Date.now() > user.accountVerificationTokenExpires.getTime()) {
+      const token = await user.CreateVerifyAccountToken();
+      await user.save();
+      const msg = {
+        to: user.email,
+        from: "tagliasco.lou@orange.fr",
+        subject: "Please confirm your account",
+        html: `<div class="content">
+                    <table style="width:100%; border-spacing:0;border-collapse: separate;">
+                        <tbody>
+                            <tr>
+                                <td style="font-size:16px; vertical-align: top;">
+                                    <h2 style="font-size:24px; font-weight:bold; margin-bottom:30px;">Let's verify your email to confirm your penBlog account</h2>
+                                    <p style="margin-bottom: 30px;">
+                                        <a style="color: #294661; font-weight:300;" href="${keys.CLIENT_URL}/verify-account/${token}" target="_blank">${user.email}</a>
+                                    </p>
+                                    <p style="margin-bottom: 30px;">Your link is active for 15 minutes. After that, you will need to resend the verification email.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                            <td style="font-size:16px; vertical-align: top; text-align:center;">
+                                    <a style="color: #fff; background-color: #294661; font-weight:300; cursor: pointer; padding: 12px 45px;" href="${keys.CLIENT_URL}/verify-account/${token}" target="_blank">VERIFY</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`,
+      };
+      await sgMail.send(msg);
+    }
+    throw new Error('Please check your inbox to confirm your account. Link expires after 15 minutes');
+  }
   res.json({
     id: user._id,
     firstName: user.firstName,
@@ -333,7 +401,7 @@ exports.generateVerificationToken = expressAsyncHandler(async (req, res) => {
                                 <p style="margin-bottom: 30px;">
                                     <a style="color: #294661; font-weight:300;" href="http://localhost:5000/api/users/verify-email-token/${token}" target="_blank">${user.email}</a>
                                 </p>
-                                <p style="margin-bottom: 30px;">Your link is active for 10 minutes. After that, you will need to resend the verification email.</p>
+                                <p style="margin-bottom: 30px;">Your link is active for 15 minutes. After that, you will need to resend the verification email.</p>
                             </td>
                         </tr>
                         <tr>
@@ -355,15 +423,16 @@ exports.verifyAccount = expressAsyncHandler(async (req, res) => {
   const token = req?.params?.token;
   //1- I Hash the token
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  
+  //2- Find the user using this token
+  const user = await Users.findOne({ accountVerificationToken: hashedToken });
+  if(user===null) throw new Error("alreadyVerified");
+
+  //3- Check if token isn't expired
+  //to compare two date we have to convert it in mms by using date.getTime();
+  if (Date.now() > user.accountVerificationTokenExpires.getTime())
+    throw new Error("tokenExpired");
   try {
-    //2- Find the user using this token
-    const user = await Users.findOne({ accountVerificationToken: hashedToken });
-
-    //3- Check if token isn't expired
-    //to compare two date we have to convert it in mms by using date.getTime();
-    if (Date.now() > user.accountVerificationTokenExpires.getTime())
-      throw "Token expired";
-
     //4- Verify account
     user.isAccountVerified = true;
     user.accountVerificationToken = undefined;
@@ -400,7 +469,7 @@ exports.forgetPasswordToken = expressAsyncHandler(async (req, res) => {
                                 <p style="margin-bottom: 30px;">
                                     <a style="color: #294661; font-weight:300;" href="http://localhost:5000/api/users/reset-password/${resetToken}" target="_blank">${user.email}</a>
                                 </p>
-                                <p style="margin-bottom: 30px;">Your link is active for 10 minutes. After that, you will need to resend the reset password email.</p>
+                                <p style="margin-bottom: 30px;">Your link is active for 15 minutes. After that, you will need to resend the reset password email.</p>
                             </td>
                         </tr>
                         <tr>
@@ -457,11 +526,11 @@ exports.uploadProfilePicture = expressAsyncHandler(async (req, res) => {
   //Buffer, because file isn't saved on server
   const buffer = req.file.buffer;
   //public_id
-  const imageName = req.file.filename.split('.')[0];
+  const imageName = req.file.filename.split(".")[0];
 
   //*** 2- upload to cloudinary ***
   const imgUploaded = await cloudinaryUploadImg(buffer, imageName);
-  
+
   const profilePhoto = imgUploaded.secure_url;
   const profilePhotoId = imgUploaded.public_id;
 
@@ -470,8 +539,8 @@ exports.uploadProfilePicture = expressAsyncHandler(async (req, res) => {
   try {
     const user = await Users.findOneAndUpdate(
       { _id: id },
-      { $set: { profilePhoto: profilePhoto, profilePhotoId: profilePhotoId }},
-      { new: true, fields: { profilePhoto: 1,  profilePhotoId:1} }
+      { $set: { profilePhoto: profilePhoto, profilePhotoId: profilePhotoId } },
+      { new: true, fields: { profilePhoto: 1, profilePhotoId: 1 } }
     );
     // *** 4- delete the old picture if it's not the default one ***
     const oldProfilePicture = req.user.profilePhotoId;

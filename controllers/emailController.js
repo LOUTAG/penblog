@@ -10,14 +10,16 @@ sgMail.setApiKey(keys.sendgridApiKey);
 
 
 exports.sendEmail = expressAsyncHandler(async(req, res)=>{
-    return res.json('yes');
     const userId = req.user.id;
+    const firstName = req.user.firstName;
+    const lastName= req.user.lastName;
     const userEmail = req.user.email;
     const targetEmail = req.body?.email;
     const subject = req.body?.subject;
     const message = req.body?.message;
-
     if(!targetEmail || !subject || !message ) throw new Error('some fields are missing');
+    if(subject.length >40) throw new Error('subject must be no longer than 40 characters')
+    if(message.length >280) throw new Error('message must be no longer than 280 characters')
 
     const filter = new Filter();
     const isProfane = filter.isProfane(subject, message);
@@ -29,7 +31,10 @@ exports.sendEmail = expressAsyncHandler(async(req, res)=>{
         //build up msg
         const msg = {
             to: targetEmail,
-            from: 'tagliasco.lou@orange.fr',
+            from: {
+                name: `${firstName} ${lastName}`,
+                email:'tagliasco.lou@orange.fr',
+            },
             subject: subject,
             html: message
         };
@@ -46,7 +51,6 @@ exports.sendEmail = expressAsyncHandler(async(req, res)=>{
             sentBy: userId
         });
         await msgSaved.save();
-
         res.json(`message sent to ${targetEmail}`);
     }catch(error){
         res.json(error);

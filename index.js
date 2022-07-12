@@ -1,5 +1,4 @@
 const express = require('express');
-// const bodyParser = require('body-parser');
 const { notFoundError } = require('./middlewares/notFoundError');
 const {errorHandler} = require('./middlewares/errorHandler');
 /*** mongoose setup ***/
