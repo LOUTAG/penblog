@@ -29,16 +29,20 @@ const AccountVerification = (user) => {
       } catch (error) {
         console.log(error);
         setLoading(false);
-        if (error.response.data.message=== "alreadyVerified") {
-          setAlreadyVerified(true);
-        }else if (error.response.data.message=== "tokenExpired"){
+        switch (error.response.data.message) {
+          case "alreadyVerified":
+            setAlreadyVerified(true);
+            break;
+          case "tokenExpired":
             setExpired(true);
-        }else{
-
+            break;
+          default:
+            toast.error("Something went wrong, please try later");
         }
       }
     };
     verifyAccount();
+    setIsMounted(true);
   }, []);
   //helpers
   const renderContent = () => {
@@ -103,29 +107,29 @@ const AccountVerification = (user) => {
         </>
       );
     } else if (!isMounted) {
-        <>
-          <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-semibold pb-2">
-            Loading to verify your account
-          </h2>
-          <p className="pb-4 text-xl xl:text-2xl 2xl:text-3xl">
-            It may take a few seconds...
-          </p>
-          <Link
-              to="/login"
-              className="inline-block py-2 px-4 bg-secondary text-white font-semibold text-xl xl:text-2xl 2xl:text-3xl"
-            >
-              Login
-            </Link>
-        </>
+      <>
+        <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-semibold pb-2">
+          Loading to verify your account
+        </h2>
+        <p className="pb-4 text-xl xl:text-2xl 2xl:text-3xl">
+          It may take a few seconds...
+        </p>
+        <Link
+          to="/login"
+          className="inline-block py-2 px-4 bg-secondary text-white font-semibold text-xl xl:text-2xl 2xl:text-3xl"
+        >
+          Login
+        </Link>
+      </>;
     } else {
-        <>
-          <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-semibold pb-2">
-            An error is appeared
-          </h2>
-          <p className="pb-4 text-xl xl:text-2xl 2xl:text-3xl">
-            Please try to login again to generate a new link
-          </p>
-        </>
+      <>
+        <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-semibold pb-2">
+          An error is appeared
+        </h2>
+        <p className="pb-4 text-xl xl:text-2xl 2xl:text-3xl">
+          Please try to login again to generate a new link
+        </p>
+      </>;
     }
   };
   return (
@@ -137,7 +141,7 @@ const AccountVerification = (user) => {
             <a href="/home">PenBlog</a>
           </h1>
         </div>
-        <div className="font-Recoleta basis-3/4 max-w-fit self-start p-2">
+        <div className="font-Recoleta basis-3/4 max-w-[744px] self-start p-2">
           {renderContent()}
         </div>
       </div>

@@ -13,7 +13,7 @@ const {
   cloudinaryUploadImg,
   cloudinaryDeleteImg,
 } = require("../utils/cloudinary");
-const e = require("express");
+const { json } = require("body-parser");
 
 //sendgrid configuration
 sgMail.setApiKey(keys.sendgridApiKey);
@@ -94,7 +94,10 @@ exports.login = expressAsyncHandler(async (req, res) => {
     throw new Error("password incorrect");
 
   if (!user.isAccountVerified) {
-    if (user?.accountVerificationTokenExpires===undefined || Date.now() > user.accountVerificationTokenExpires.getTime()) {
+    if (
+      user?.accountVerificationTokenExpires === undefined ||
+      Date.now() > user.accountVerificationTokenExpires.getTime()
+    ) {
       const token = await user.CreateVerifyAccountToken();
       await user.save();
       const msg = {
@@ -124,7 +127,9 @@ exports.login = expressAsyncHandler(async (req, res) => {
       };
       await sgMail.send(msg);
     }
-    throw new Error('Please check your inbox to confirm your account. Link expires after 15 minutes');
+    throw new Error(
+      "Please check your inbox to confirm your account. Link expires after 15 minutes"
+    );
   }
   res.json({
     id: user._id,
@@ -423,10 +428,10 @@ exports.verifyAccount = expressAsyncHandler(async (req, res) => {
   const token = req?.params?.token;
   //1- I Hash the token
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-  
+
   //2- Find the user using this token
   const user = await Users.findOne({ accountVerificationToken: hashedToken });
-  if(user===null) throw new Error("alreadyVerified");
+  if (user === null) throw new Error("alreadyVerified");
 
   //3- Check if token isn't expired
   //to compare two date we have to convert it in mms by using date.getTime();
@@ -451,8 +456,7 @@ exports.forgetPasswordToken = expressAsyncHandler(async (req, res) => {
 
   //1- Find user by email
   const user = await Users.findOne({ email: email }, { password: 0 });
-  if (!user) throw new Error("User not found");
-
+  if (user === null) return res.json(`Reset password email sent to ${email}`);
   try {
     const resetToken = await user.createPasswordResetToken();
     await user.save();
@@ -467,14 +471,14 @@ exports.forgetPasswordToken = expressAsyncHandler(async (req, res) => {
                             <td style="font-size:16px; vertical-align: top;">
                                 <h2 style="font-size:24px; font-weight:bold; margin-bottom:30px;">Let's reset your penBlog account password</h2>
                                 <p style="margin-bottom: 30px;">
-                                    <a style="color: #294661; font-weight:300;" href="http://localhost:5000/api/users/reset-password/${resetToken}" target="_blank">${user.email}</a>
+                                    <a style="color: #294661; font-weight:300;" href="${keys.CLIENT_URL}/reset-password/${resetToken}" target="_blank">${user.email}</a>
                                 </p>
                                 <p style="margin-bottom: 30px;">Your link is active for 15 minutes. After that, you will need to resend the reset password email.</p>
                             </td>
                         </tr>
                         <tr>
                         <td style="font-size:16px; vertical-align: top; text-align:center;">
-                                <a style="color: #fff; background-color: #294661; font-weight:300; cursor: pointer; padding: 12px 45px;" href="http://localhost:5000/api/users/reset-password/${resetToken}" target="_blank">Reset</a>
+                                <a style="color: #fff; background-color: #294661; font-weight:300; cursor: pointer; padding: 12px 45px;" href="${keys.CLIENT_URL}/reset-password/${resetToken}" target="_blank">Reset</a>
                             </td>
                         </tr>
                     </tbody>
@@ -484,17 +488,40 @@ exports.forgetPasswordToken = expressAsyncHandler(async (req, res) => {
     await sgMail.send(msg);
     res.json(`Reset password email sent to ${user.email}`);
   } catch (error) {
-    res.json(error);
+    res.status(500).json(error.message);
+  }
+});
+exports.verifyTokenPassword = expressAsyncHandler(async (req, res) => {
+  const token = req?.params?.token;
+  if (!token) throw new Error("invalidURL");
+  const tokenHashed = crypto.createHash("sha256").update(token).digest("hex");
+  try{
+    const user = await Users.findOne(
+      { passwordResetToken: tokenHashed },
+      { firstName: 1, lastName: 1, passwordResetExpires:1 }
+    );
+    if (user === null) throw new Error("invalidToken");
+    if (Date.now() > user.passwordResetExpires.getTime())
+      throw new Error("ExpiredToken");
+    res.json({firstName: user.firstName});
+  }catch(error){
+    switch(error.message){
+      case 'invalidURL':
+        return res.status(400).json(error.message);
+      case 'invalidToken':
+      case 'ExpiredToken':
+        return res.status(403).json(error.message);
+      default :
+        return res.status(500).json(error.message);
+    }
   }
 });
 
 exports.resetPassword = expressAsyncHandler(async (req, res) => {
   //1- catch the token & password
   const token = req?.body?.token;
-  if (!token) throw new Error("Invalid Token");
-
   const password = req?.body?.password;
-  if (!token) throw new Error("incorrect password field");
+  if (!token || !password) throw new Error("invalidURL");
 
   //2- Hash the token
   const tokenHashed = crypto.createHash("sha256").update(token).digest("hex");
@@ -505,18 +532,26 @@ exports.resetPassword = expressAsyncHandler(async (req, res) => {
       { passwordResetToken: tokenHashed },
       { password: 0 }
     );
-    if (!user) throw "Invalid token";
+    if (user === null) throw new Error("invalidToken");
     if (Date.now() > user.passwordResetExpires.getTime())
-      throw "Password reset token is expired";
+    throw new Error("ExpiredToken");
 
     //4- reset and save the password
     user.password = password;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
-    res.json(user);
+    res.json('resetWithSuccess');
   } catch (error) {
-    res.json(error);
+    switch(error.message){
+      case 'invalidURL':
+        return res.status(400).json(error.message);
+      case 'invalidToken':
+      case 'ExpiredToken':
+        return res.status(403).json(error.message);
+      default :
+        return res.status(500).json(error.message);
+    }
   }
 });
 

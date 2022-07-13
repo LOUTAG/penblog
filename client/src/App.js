@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import AccountVerification from "./pages/AccountVerification";
 import ForgotPassword from "./pages/ForgotPassword";
+import PasswordReset from "./pages/PasswordReset";
 import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
 import AddCategory from "./pages/AddCategory";
@@ -36,6 +37,7 @@ const App=()=>{
           <Route path="/login" element={<Login />} />
           <Route path="/verify-account/:token" element={<AccountVerification />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path='/reset-password/:token' element={<PasswordReset />} />
           <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/create" element={<ProtectedRoute><CreatePost/></ProtectedRoute>} />

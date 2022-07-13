@@ -58,6 +58,9 @@ module.exports=(app)=>{
     //generate password Token
     app.post('/api/users/forget-password-token', userController.forgetPasswordToken);
 
+    //verify password token to access to the form
+    app.get('/api/users/verify-password-token/:token', userController.verifyTokenPassword)
+
     //reset password
     app.post('/api/users/reset-password', userController.resetPassword);
 

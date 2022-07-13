@@ -15,6 +15,8 @@ url : https://arcane-peak-61091.herokuapp.com/
 
 * **Cloudinary** service Cloud (CDN) utilisé pour l'hébergement des images.
 
+* **SendGrid** pour la vérification de compte, la modification des passwords et l'envoi de mail entre les utilisateurs 
+
 <ins>Front-end</ins>
 
 * **Redux** essentiellement afin de gérer l'authentification de l'utilisateur à chaque rêquetes (post, put, delete).
@@ -29,9 +31,5 @@ url : https://arcane-peak-61091.herokuapp.com/
 
 * **React Dropzone** Upload de fichiers
 
-
-### Les fonctionnalités à implementer :
-* Emails to confirm account
-* Messages between users
 
 Création : 28/06/2022
